@@ -61,7 +61,7 @@ class ReportController extends Controller
         }
 
         $years = Transaction::where('user_id', $userId)
-            ->selectRaw('YEAR(transaction_date) as year')
+            ->selectRaw('EXTRACT(YEAR FROM transaction_date) as year')
             ->distinct()
             ->orderByDesc('year')
             ->pluck('year');

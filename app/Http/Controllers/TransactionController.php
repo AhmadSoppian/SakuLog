@@ -25,7 +25,7 @@ class TransactionController extends Controller
             ->withQueryString();
 
         $years = Transaction::where('user_id', Auth::user()->id)
-            ->selectRaw('YEAR(transaction_date) as year')
+            ->selectRaw('EXTRACT(YEAR FROM transaction_date) as year')
             ->distinct()
             ->orderByDesc('year')
             ->pluck('year');
