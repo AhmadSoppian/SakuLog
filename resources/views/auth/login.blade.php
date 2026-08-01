@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Masuk - SakuLog</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -15,7 +16,15 @@
             <p class="text-gray-500 mt-2 text-sm">Masuk ke akun Anda</p>
         </div>
 
-        <form id="loginForm" class="space-y-5" novalidate>
+        @session('success')
+            <div class="p-4 rounded-lg text-sm mb-5 bg-green-50 text-green-700 border border-green-200">
+                {{ $value }}
+            </div>
+        @endsession
+
+        <form id="loginForm" class="space-y-5">
+            <div id="loginAlert" class="hidden p-4 rounded-lg text-sm mb-5"></div>
+
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-900 mb-1">Email</label>
                 <input type="email" id="email" name="email" required
@@ -45,8 +54,27 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
+        const loginAlert = document.getElementById('loginAlert');
+
+        function showAlert(message, type) {
+            loginAlert.textContent = message;
+            loginAlert.className = 'p-4 rounded-lg text-sm mb-5';
+            if (type === 'success') {
+                loginAlert.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
+            } else {
+                loginAlert.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
+            }
+            loginAlert.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            loginAlert.classList.add('hidden');
+            loginAlert.textContent = '';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+            hideAlert();
 
             const email = document.getElementById('email');
             const password = document.getElementById('password');
@@ -87,8 +115,46 @@
                 valid = false;
             }
 
-            if (valid) {
-                alert('Login berhasil! (backend belum terhubung)');
+            if (!valid) return;
+
+            try {
+                const response = await fetch("{{ route('login') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email.value.trim(),
+                        password: password.value,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = data.redirect;
+                } else {
+                    if (data.errors) {
+                        if (data.errors.email) {
+                            emailError.textContent = data.errors.email[0];
+                            emailError.classList.remove('hidden');
+                            email.classList.remove('border-gray-300');
+                            email.classList.add('border-red-500');
+                        }
+                        if (data.errors.password) {
+                            passwordError.textContent = data.errors.password[0];
+                            passwordError.classList.remove('hidden');
+                            password.classList.remove('border-gray-300');
+                            password.classList.add('border-red-500');
+                        }
+                    } else {
+                        showAlert(data.message || 'Email atau password salah', 'error');
+                    }
+                }
+            } catch (error) {
+                alert('Terjadi kesalahan jaringan');
             }
         });
     </script>

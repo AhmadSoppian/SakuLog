@@ -26,6 +26,7 @@ Buat *form* masuk dengan *input fields* berikut:
 * **Tombol Submit:** Berlabel "Masuk" atau "Login".
 * **Navigasi:** Tambahkan teks "Belum punya akun? Daftar di sini" yang dapat diklik dan mengarah ke halaman Register.
 
+
 ## 💾 Referensi Skema Database Tabel `users`
 *Form* yang dibuat harus selaras dengan struktur tabel `users` di *database* berikut (sebagai acuan untuk pembuatan *payload* / state data):
 * `id` (interger primary key)
@@ -34,6 +35,9 @@ Buat *form* masuk dengan *input fields* berikut:
 * `password` (String / Hashed)
 * `created_at` (Timestamp)
 * `updated_at` (Timestamp)
+
+
+
 
 ## 🎯 Expected Output (Deliverables)
 1.  Kode *frontend* (komponen UI) untuk halaman Register dan Login.

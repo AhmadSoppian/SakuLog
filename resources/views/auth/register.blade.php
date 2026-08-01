@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Daftar - SakuLog</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -15,7 +16,9 @@
             <p class="text-gray-500 mt-2 text-sm">Buat akun untuk mulai mencatat keuangan</p>
         </div>
 
-        <form id="registerForm" class="space-y-5" novalidate>
+        <form id="registerForm" class="space-y-5">
+            <div id="registerAlert" class="hidden p-4 rounded-lg text-sm mb-5"></div>
+
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-900 mb-1">Nama Lengkap</label>
                 <input type="text" id="name" name="name" required
@@ -61,8 +64,27 @@
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
+        const registerAlert = document.getElementById('registerAlert');
+
+        function showAlert(message, type) {
+            registerAlert.textContent = message;
+            registerAlert.className = 'p-4 rounded-lg text-sm mb-5';
+            if (type === 'success') {
+                registerAlert.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
+            } else {
+                registerAlert.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
+            }
+            registerAlert.classList.remove('hidden');
+        }
+
+        function hideAlert() {
+            registerAlert.classList.add('hidden');
+            registerAlert.textContent = '';
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+            hideAlert();
 
             const name = document.getElementById('name');
             const email = document.getElementById('email');
@@ -136,8 +158,54 @@
                 valid = false;
             }
 
-            if (valid) {
-                alert('Pendaftaran berhasil! (backend belum terhubung)');
+            if (!valid) return;
+
+            try {
+                const response = await fetch('{{ route("register") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name.value.trim(),
+                        email: email.value.trim(),
+                        password: password.value,
+                        password_confirmation: confirm.value,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = data.redirect;
+                } else {
+                    if (data.errors) {
+                        if (data.errors.name) {
+                            nameError.textContent = data.errors.name[0];
+                            nameError.classList.remove('hidden');
+                            name.classList.remove('border-gray-300');
+                            name.classList.add('border-red-500');
+                        }
+                        if (data.errors.email) {
+                            emailError.textContent = data.errors.email[0];
+                            emailError.classList.remove('hidden');
+                            email.classList.remove('border-gray-300');
+                            email.classList.add('border-red-500');
+                        }
+                        if (data.errors.password) {
+                            passwordError.textContent = data.errors.password[0];
+                            passwordError.classList.remove('hidden');
+                            password.classList.remove('border-gray-300');
+                            password.classList.add('border-red-500');
+                        }
+                    } else {
+                        showAlert(data.message || 'Registrasi gagal', 'error');
+                    }
+                }
+            } catch (error) {
+                showAlert('Terjadi kesalahan jaringan', 'error');
             }
         });
     </script>
