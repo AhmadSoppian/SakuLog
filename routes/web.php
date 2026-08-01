@@ -7,7 +7,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/register', function () {
+Route::get('/', function () {
     return view('auth.register');
 })->name('register');
 
