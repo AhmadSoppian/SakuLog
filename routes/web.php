@@ -5,9 +5,14 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('register');
+})->name('home');
+
+Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
 
