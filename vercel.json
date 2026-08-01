@@ -1,15 +1,16 @@
 {
     "version": 2,
-    "buildCommand": "npm run build",
+    "framework": null,
+    "outputDirectory": "public",
     "functions": {
         "api/index.php": {
-            "runtime": "vercel-php@0.8.0"
+            "runtime": "vercel-php@0.7.0"
         }
     },
     "routes": [
         {
-            "src": "/(.*\\.(?:css|js|mjs|map|woff|woff2|ttf|eot|otf|png|jpe?g|gif|svg|ico|webp|avif|txt|json))$",
-            "dest": "/public/$1"
+            "src": "/build/(.*)",
+            "dest": "/public/build/$1"
         },
         {
             "src": "/(.*)",
